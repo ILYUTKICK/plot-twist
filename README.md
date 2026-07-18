@@ -182,3 +182,5 @@ must report `ready` before recording the demo.
 - Live app: to be added after deployment
 - Public repository: to be added after repository publication
 - Demo video: to be added after recording
+- [60-second recording script](docs/DEMO_SCRIPT.md)
+- [Ready-to-paste submission copy](docs/SUBMISSION.md)
