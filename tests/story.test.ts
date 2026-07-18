@@ -40,3 +40,10 @@ test("rejects an unsafe headline when the score is level", () => {
     headlineAccent: "Spain now trail.",
   }, input, "gpt-oss:20b", 420), null);
 });
+
+test("rejects a headline that mistakes the call deadline for match time remaining", () => {
+  assert.equal(finalizeDirectedStory({
+    headlineLead: "Spain see yellow",
+    headlineAccent: "60 minutes to go",
+  }, input, "gpt-oss:20b", 420), null);
+});

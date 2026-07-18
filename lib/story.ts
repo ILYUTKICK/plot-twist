@@ -106,7 +106,7 @@ function hasUnsafeNarrative(value: string, input: StoryDirectorInput) {
     /\b(well-placed|header|penalty|free kick|long-range|volley|striker|scorer|goalkeeper|captain|finish(?:ed|es)?)\b|back of (?:the )?net|finds? (?:the )?net/i.test(value)
   ) return true;
   if (/\b(probability|percent|odds|market)\b|\d+\s*%/i.test(value)) return true;
-  return /\b(?:home|away) side\b|\bfinal (?:\w+\s){0,2}(?:minutes?|stretch)\b/i.test(value);
+  return /\b(?:home|away) side\b|\bfinal (?:\w+\s){0,2}(?:minutes?|stretch)\b|\b\d+\s*(?:minutes?|mins?)\s+(?:to go|remaining)\b/i.test(value);
 }
 
 function cleanString(value: unknown, maxLength: number): string | null {

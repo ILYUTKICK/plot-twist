@@ -10,7 +10,7 @@ type OllamaResponse = {
 };
 
 const cache = new Map<string, DirectedStory>();
-const PROMPT_VERSION = 8;
+const PROMPT_VERSION = 9;
 
 function parseJsonContent(content: string): unknown {
   const trimmed = content.trim();
@@ -21,6 +21,14 @@ function parseJsonContent(content: string): unknown {
 }
 
 function promptFor(input: StoryDirectorInput): string {
+  const narrativeContext = {
+    homeTeam: input.homeTeam,
+    awayTeam: input.awayTeam,
+    triggerTeam: input.triggerTeam,
+    trigger: input.trigger,
+    minute: input.minute,
+    currentScore: `${input.homeScore}-${input.awayScore}`,
+  };
   return [
     "You are PLOT TWIST, an energetic but factual football story director.",
     "Turn one verified match event into a concise two-part headline for mainstream fans.",
@@ -40,7 +48,7 @@ function promptFor(input: StoryDirectorInput): string {
     "Return only a JSON object. No markdown and no text outside JSON.",
     "The object must contain exactly two strings: headlineLead and headlineAccent.",
     "Keep headlineLead under 52 characters and headlineAccent under 42 characters.",
-    `Verified event context: ${JSON.stringify(input)}`,
+    `Verified event context: ${JSON.stringify(narrativeContext)}`,
   ].join("\n");
 }
 
