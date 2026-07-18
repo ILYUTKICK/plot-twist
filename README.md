@@ -165,8 +165,8 @@ solana transfer <BROWSER_WALLET_ADDRESS> 0.02 --allow-unfunded-recipient --url d
 ```bash
 npm test
 npm run typecheck
-PLOT_TWIST_DIST_DIR=.next-build npm run build
-PLOT_TWIST_DIST_DIR=.next-build npm run start
+npm run build
+npm run start
 ```
 
 The test suite covers fixture/team/deadline-aware resolution, compact v2 Memo
@@ -180,7 +180,7 @@ must report `ready` before recording the demo.
 ## Submission links
 
 - Live app: to be added after deployment
-- Public repository: to be added after repository publication
+- Public repository: https://github.com/ILYUTKICK/plot-twist
 - Demo video: to be added after recording
 - [60-second recording script](docs/DEMO_SCRIPT.md)
 - [Ready-to-paste submission copy](docs/SUBMISSION.md)
