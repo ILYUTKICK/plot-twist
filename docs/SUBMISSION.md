@@ -70,14 +70,14 @@ server-side fixture filters on the global live streams.
 
 - Live app: add after deployment
 - Public repository: https://github.com/ILYUTKICK/plot-twist
-- Demo video: add after upload
+- Demo video: https://github.com/ILYUTKICK/plot-twist/releases/download/demo-v1/plot-twist-demo.mp4
 - Solana transaction: https://explorer.solana.com/tx/2XY2q4xJk9adgBEPXxR8bPXuvGmnNkipd4a7bSejrQXFxB1qq7KqUrMVjwJNat9V9zson4MHBeCVB6EQfjcDAZcM?cluster=devnet
 
 ## Final pre-submit checklist
 
 - [ ] Public app opens in incognito and `/api/demo-readiness` is green
 - [ ] Public repository contains README and no `.env.local`
-- [ ] Demo video is public/unlisted and plays without sign-in
+- [x] Demo video is public and downloads without sign-in
 - [ ] Submission links point to the final production artifacts
 - [ ] Technical description names the exact TxLINE endpoints
 - [ ] TxLINE API feedback is included

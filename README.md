@@ -181,6 +181,6 @@ must report `ready` before recording the demo.
 
 - Live app: to be added after deployment
 - Public repository: https://github.com/ILYUTKICK/plot-twist
-- Demo video: to be added after recording
+- Demo video: https://github.com/ILYUTKICK/plot-twist/releases/download/demo-v1/plot-twist-demo.mp4
 - [60-second recording script](docs/DEMO_SCRIPT.md)
 - [Ready-to-paste submission copy](docs/SUBMISSION.md)
