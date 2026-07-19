@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { finalizeDirectedStory, type StoryDirectorInput } from "../lib/story.ts";
+import { fallbackFor, finalizeDirectedStory, type StoryDirectorInput } from "../lib/story.ts";
 
 const input: StoryDirectorInput = {
   fixtureId: 18218149,
@@ -46,4 +46,54 @@ test("rejects a headline that mistakes the call deadline for match time remainin
     headlineLead: "Spain see yellow",
     headlineAccent: "60 minutes to go",
   }, input, "gpt-oss:20b", 420), null);
+});
+
+test("opens an honest fixture-scoped round when a live match has no recent key event", () => {
+  const liveInput: StoryDirectorInput = {
+    ...input,
+    fixtureId: 18257865,
+    homeTeam: "France",
+    awayTeam: "England",
+    triggerTeam: "France",
+    trigger: "live_state",
+    minute: 64,
+    deadlineMinute: 74,
+    homeScore: 2,
+    awayScore: 4,
+    marketBefore: 0,
+    marketAfter: 0,
+    marketVerified: false,
+  };
+
+  const fallback = fallbackFor(liveInput);
+  assert.match(fallback.explanation, /TxLINE confirms France against England is live/);
+  assert.doesNotMatch(fallback.explanation, /verified match started/);
+  assert.deepEqual(fallback.calls.map((call) => call.fixtureId), [18257865, 18257865, 18257865]);
+  assert.deepEqual(fallback.calls.map((call) => call.detail), ["before 74:00", "before 74:00", "before 74:00"]);
+
+  const directed = finalizeDirectedStory({
+    headlineLead: "France versus England",
+    headlineAccent: "The live chapter is open.",
+  }, liveInput, "gpt-oss:20b", 420);
+
+  assert.ok(directed);
+  assert.match(directed.explanation, /64th minute at 2–4/);
+  assert.doesNotMatch(directed.explanation, /confirmed the match started/);
+
+  assert.equal(finalizeDirectedStory({
+    headlineLead: "France starts the 64th minute",
+    headlineAccent: "England hold the score.",
+  }, liveInput, "gpt-oss:20b", 420), null);
+  assert.equal(finalizeDirectedStory({
+    headlineLead: "England edge France 4-3",
+    headlineAccent: "England takes the lead.",
+  }, liveInput, "gpt-oss:20b", 420), null);
+  assert.equal(finalizeDirectedStory({
+    headlineLead: "England remain ahead 5-2",
+    headlineAccent: "France are trailing.",
+  }, liveInput, "gpt-oss:20b", 420), null);
+  assert.equal(finalizeDirectedStory({
+    headlineLead: "England remain ahead in the 68th minute",
+    headlineAccent: "France are trailing.",
+  }, liveInput, "gpt-oss:20b", 420), null);
 });

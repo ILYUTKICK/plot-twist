@@ -21,7 +21,7 @@ export function useTxlineOdds(fixtureId: number) {
       })
       .catch(() => undefined);
 
-    const stream = new EventSource("/api/txline/stream?feed=odds");
+    const stream = new EventSource(`/api/txline/stream?feed=odds&fixtureId=${fixtureId}`);
     stream.onopen = () => active && setStreamState("live");
     stream.onerror = () => active && setStreamState("reconnecting");
     stream.onmessage = (message) => {

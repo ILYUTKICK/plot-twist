@@ -10,10 +10,11 @@ function getApiToken(): string {
   return token;
 }
 
-async function renewGuestJwt(): Promise<string> {
+async function renewGuestJwt(signal?: AbortSignal | null): Promise<string> {
   const response = await fetch(`${API_ORIGIN}/auth/guest/start`, {
     method: "POST",
     cache: "no-store",
+    signal: signal ?? undefined,
   });
 
   if (!response.ok) throw new Error(`TxLINE guest auth failed (${response.status})`);
@@ -24,7 +25,7 @@ async function renewGuestJwt(): Promise<string> {
 }
 
 async function authenticatedFetch(path: string, init: RequestInit, retry: boolean): Promise<Response> {
-  const jwt = guestJwt ?? await renewGuestJwt();
+  const jwt = guestJwt ?? await renewGuestJwt(init.signal);
   const response = await fetch(`${API_ORIGIN}/api${path}`, {
     ...init,
     cache: "no-store",
@@ -38,7 +39,7 @@ async function authenticatedFetch(path: string, init: RequestInit, retry: boolea
 
   if (retry && (response.status === 401 || response.status === 403)) {
     guestJwt = null;
-    await renewGuestJwt();
+    await renewGuestJwt(init.signal);
     return authenticatedFetch(path, init, false);
   }
 

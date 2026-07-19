@@ -8,7 +8,7 @@ the RPC verifier can recognize the saved transaction after the second call.
 
 | Time | Screen action | Voiceover |
 | --- | --- | --- |
-| 0–5s | Hero, score, and story card | “Watching football is still mostly passive. PLOT TWIST turns every verified match event into a free fan decision.” |
+| 0–5s | Briefly open `MATCH CENTER`, show Finished / Live / Upcoming, then return to Spain–Belgium | “PLOT TWIST follows the whole match lifecycle: preview, live fan calls, and a personal final summary.” |
 | 5–11s | Open `JUDGE MODE`; show three green checks | “This is a real Spain–Belgium TxLINE fixture replay, with Ollama and Solana devnet ready.” |
 | 11–17s | Click `Start clean pitch`, then `Lock Spain yellow card` | “I call the next plot twist for XP—not money.” |
 | 17–22s | Click `Start verified replay`; let 42′ resolve | “The original TxLINE yellow-card event settles it automatically.” |
@@ -21,6 +21,7 @@ the RPC verifier can recognize the saved transaction after the second call.
 ## Recording checklist
 
 - Run `/api/demo-readiness` immediately before recording; all checks must be green.
+- Confirm the Match Center loads all three phases; return to Spain–Belgium before starting Judge Mode.
 - Keep the browser wallet on Solana devnet and funded with at least `0.01 SOL`.
 - Confirm the opening tag says `OLLAMA HEADLINE`; if it says fallback, reload once.
 - Do not call the Memo a TxLINE-signed proof. Say “wallet-signed achievement.”
@@ -33,4 +34,3 @@ the RPC verifier can recognize the saved transaction after the second call.
 If a fresh wallet confirmation is slow, use the already verified devnet transaction:
 
 https://explorer.solana.com/tx/2XY2q4xJk9adgBEPXxR8bPXuvGmnNkipd4a7bSejrQXFxB1qq7KqUrMVjwJNat9V9zson4MHBeCVB6EQfjcDAZcM?cluster=devnet
-

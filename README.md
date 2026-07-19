@@ -10,6 +10,25 @@ The submitted demo uses a **verified historical replay** of Spain–Belgium
 run while preserving event order, match minute, score, team, and TxLINE event ID.
 The same pipeline can consume TxLINE's live score and odds streams in production.
 
+The match center also loads the real World Cup fixture catalog and groups it into
+finished, live, and upcoming matches. Selecting a fixture replaces the demo view
+with every currently available TxLINE detail: score and clock, key events, 1X2
+market signal, conditions, and starting lineups. Missing coverage is shown as
+unavailable rather than filled with generated data. The Spain–Belgium fixture
+remains the deterministic 60-second Judge Mode.
+
+### Match lifecycle
+
+| Phase | Fan experience |
+| --- | --- |
+| Upcoming | Verified kickoff, teams, published lineups/conditions, and pre-match 1X2. Calls stay locked until TxLINE confirms live coverage. |
+| Live | Every live fixture gets an immediate verified-state call round. Confirmed goals, cards, shots on target, and corners then trigger Ollama story headlines and fresh rounds. One free call is settled only by a same-fixture event/team or the verified clock deadline. |
+| Finished | Calls close. The UI switches to final score/corners, the available TxLINE event archive, personal accuracy, XP, best streak, and wallet achievement state. |
+
+Settled fan sessions are stored per fixture in the browser. The server filters
+both score and odds streams by `fixtureId`, while event IDs are deduplicated on
+the client so reconnects cannot award XP twice.
+
 ## Why it is a consumer experience
 
 Most live-data products show fans more numbers. PLOT TWIST converts those numbers
@@ -59,6 +78,10 @@ fact. The server validates the model output and replaces factual recap, market
 sentence, choices, deadlines, and XP with deterministic values. Unsafe or invalid
 output falls back to a deterministic template.
 
+Quiet live periods use the deterministic verified-state template directly: there
+is no narrative event for Ollama to embellish, but fans still receive fixture-
+scoped cards immediately. Ollama is invoked only for confirmed match actions.
+
 This boundary keeps the product lively without putting an LLM in the scoring path:
 
 ```text
@@ -83,14 +106,17 @@ Exact upstream endpoints used by the project:
 | Method | TxLINE endpoint | Use |
 | --- | --- | --- |
 | `POST` | `/auth/guest/start` | Obtain guest JWT |
+| `GET` | `/api/fixtures/snapshot` | Past, live, and upcoming match catalog |
+| `GET` | `/api/scores/snapshot/{fixtureId}` | Selected fixture state, key events, conditions, and lineups |
 | `GET` | `/api/scores/historical/{fixtureId}` | Submitted verified replay |
 | `GET` | `/api/odds/updates/{epochDay}/{hour}/{interval}` | Submitted historical market shift |
-| `GET` | `/api/scores/stream` | Production live score adapter |
-| `GET` | `/api/odds/stream` | Production live odds adapter |
+| `GET` | `/api/scores/stream?fixtureId=…` | Fixture-scoped live event and settlement feed |
+| `GET` | `/api/odds/stream?fixtureId=…` | Fixture-scoped live odds adapter |
 | `GET` | `/api/odds/snapshot/{fixtureId}` | Fixture market snapshot adapter |
 
-Internal routes such as `/api/txline/replay/18218149` proxy and normalize those
-calls; browser code never receives `TXLINE_API_TOKEN` or the guest JWT.
+Internal routes such as `/api/matches`, `/api/matches/{fixtureId}`, and
+`/api/txline/replay/18218149` proxy and normalize those calls; browser code never
+receives `TXLINE_API_TOKEN` or the guest JWT.
 
 ### TxLINE API feedback
 
@@ -109,8 +135,8 @@ What would improve developer experience:
   response uses SSE framing even though it is a finite replay.
 - Include team display names in score events, or publish a canonical fixture join
   example for mapping participant sides to names.
-- Add server-side fixture filters for global score/odds streams to reduce client
-  bandwidth and accidental cross-fixture mixing.
+- Make the documented `fixtureId` stream filter more prominent and include it in
+  the canonical SSE example; it is essential for safe per-match fan sessions.
 
 ## Solana achievement verification
 
@@ -169,8 +195,10 @@ npm run build
 npm run start
 ```
 
-The test suite covers fixture/team/deadline-aware resolution, compact v2 Memo
-generation, v1 compatibility, and rejection of forged XP or cross-fixture events.
+The test suite covers match phase/catalog normalization, stale fixture-state
+correction from live score actions, home/away score and player mapping,
+fixture/team/deadline-aware resolution, compact v2 Memo generation, v1
+compatibility, and rejection of forged XP or cross-fixture events.
 
 For deployment, set `TXLINE_API_ORIGIN`, `TXLINE_API_TOKEN`, `OLLAMA_BASE_URL`,
 `OLLAMA_API_KEY`, and `OLLAMA_MODEL`. `SOLANA_RPC_URL` is optional and defaults to
@@ -183,4 +211,5 @@ must report `ready` before recording the demo.
 - Public repository: https://github.com/ILYUTKICK/plot-twist
 - Demo video: https://ilyutkick.github.io/plot-twist/
 - [60-second recording script](docs/DEMO_SCRIPT.md)
+- [Competitive interface review](docs/COMPETITIVE_INTERFACE_REVIEW.md)
 - [Ready-to-paste submission copy](docs/SUBMISSION.md)

@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "PLOT_TWIST_DIST_DIR=.next-build next build",
+    "start": "PLOT_TWIST_DIST_DIR=.next-build next start",
     "lint": "next lint",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "typecheck": "tsc --noEmit"

@@ -48,13 +48,25 @@ platforms license PLOT TWIST per tournament or active fan, then monetize sponsor
 story rounds, loyalty programs, and aggregate engagement analytics. Fans continue
 to participate for free.
 
+The product now covers the full fixture lifecycle. Upcoming matches show only
+published preview data and keep calls locked. Every live match immediately gets
+a deterministic call round from its verified score and clock; confirmed actions
+then trigger Ollama headlines. Fixture-scoped TxLINE score SSE creates and settles
+the rounds, persists accuracy/XP per fixture, and deduplicates reconnects. When
+TxLINE finalises the game, calls close
+and the same screen becomes a final score, corners, event archive, and personal
+fan-session summary. The Spain–Belgium historical replay remains the stable judge
+path, not the limit of the product engine.
+
 ## TxLINE usage
 
 - `POST /auth/guest/start` — short-lived guest JWT
+- `GET /api/fixtures/snapshot` — finished/live/upcoming World Cup catalog
+- `GET /api/scores/snapshot/{fixtureId}` — phase, clock, score, events, lineups, conditions
 - `GET /api/scores/historical/{fixtureId}` — verified submitted replay
 - `GET /api/odds/updates/{epochDay}/{hour}/{interval}` — historical market shift
-- `GET /api/scores/stream` — production live score adapter
-- `GET /api/odds/stream` — production live odds adapter
+- `GET /api/scores/stream?fixtureId=…` — fixture-scoped live round/settlement feed
+- `GET /api/odds/stream?fixtureId=…` — fixture-scoped live odds adapter
 - `GET /api/odds/snapshot/{fixtureId}` — fixture odds snapshot adapter
 
 ## TxLINE API feedback

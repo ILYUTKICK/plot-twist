@@ -1,9 +1,11 @@
 export type MatchEventKind =
   | "match_started"
+  | "live_state"
   | "goal"
   | "yellow_card"
   | "red_card"
   | "shot_on_target"
+  | "corner"
   | "odds_shift"
   | "match_finished";
 
@@ -32,6 +34,23 @@ export type PredictionTarget = {
 };
 
 export type PredictionResult = "pending" | "won" | "lost";
+
+export function isStoryEventKind(
+  kind: MatchEventKind,
+): kind is "match_started" | "live_state" | "goal" | "yellow_card" | "red_card" | "shot_on_target" | "corner" | "odds_shift" {
+  return kind === "match_started"
+    || kind === "live_state"
+    || kind === "goal"
+    || kind === "yellow_card"
+    || kind === "red_card"
+    || kind === "shot_on_target"
+    || kind === "corner"
+    || kind === "odds_shift";
+}
+
+export function predictionDeadlineFor(minute: number) {
+  return Math.min(120, minute + 10);
+}
 
 const TARGETS: Record<PredictionId, MatchEventKind> = {
   shot: "shot_on_target",

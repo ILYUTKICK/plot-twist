@@ -1,11 +1,14 @@
 "use client";
 
+// Interactive shell: match browsing, judge replay, narration, and fan proof.
+
 import {
   ArrowRight,
   CheckCircle,
   Fire,
   Lightning,
   Play,
+  ShieldCheck,
   SpeakerHigh,
   Trophy,
   UsersThree,
@@ -13,6 +16,8 @@ import {
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { JudgeMode, type JudgeAction } from "@/components/judge-mode";
+import { MatchSelector } from "@/components/match-selector";
+import { SelectedMatchExperience } from "@/components/selected-match-experience";
 import type { VerifiedCallProof } from "@/lib/achievements";
 import {
   resolvePrediction,
@@ -102,10 +107,13 @@ const OPENING_ROUND: StoryRound = {
 };
 
 function isStoryTrigger(kind: MatchEventKind): kind is StoryTrigger {
-  return kind === "goal"
+  return kind === "match_started"
+    || kind === "live_state"
+    || kind === "goal"
     || kind === "yellow_card"
     || kind === "red_card"
     || kind === "shot_on_target"
+    || kind === "corner"
     || kind === "odds_shift";
 }
 
@@ -115,10 +123,13 @@ function teamName(side?: TeamSide) {
 
 function eventName(kind: StoryTrigger) {
   return {
+    match_started: "Live match",
+    live_state: "Verified live clock",
     goal: "Goal",
     yellow_card: "Yellow card",
     red_card: "Red card",
     shot_on_target: "Shot on target",
+    corner: "Corner",
     odds_shift: "Odds shift",
   }[kind];
 }
@@ -153,6 +164,7 @@ function formatProbability(value: number) {
 }
 
 export default function Home() {
+  const [activeFixtureId, setActiveFixtureId] = useState<number>(DEMO_MATCH.fixtureId);
   const [selected, setSelected] = useState<PredictionId | null>(null);
   const [result, setResult] = useState<PredictionResult>("pending");
   const [playing, setPlaying] = useState(false);
@@ -185,6 +197,13 @@ export default function Home() {
   storyRef.current = story;
   roundRef.current = round;
 
+  useEffect(() => {
+    const rawFixtureId = new URL(window.location.href).searchParams.get("fixture");
+    if (rawFixtureId && /^\d+$/.test(rawFixtureId)) {
+      setActiveFixtureId(Number(rawFixtureId));
+    }
+  }, []);
+
   const requestRound = useCallback(async (event: StoryEvent, deadlineMinute: number) => {
     directorControllerRef.current?.abort();
     const controller = new AbortController();
@@ -202,14 +221,7 @@ export default function Home() {
     setMarketShift(null);
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 
-    let verifiedShift: VerifiedMarketShift | null = null;
-    try {
-      verifiedShift = await verifiedShiftFor(event, controller.signal);
-    } catch {
-      if (controller.signal.aborted) return;
-    }
-
-    const context: StoryDirectorInput = {
+    const baseContext: StoryDirectorInput = {
       fixtureId: event.fixtureId,
       homeTeam: DEMO_MATCH.home.name,
       awayTeam: DEMO_MATCH.away.name,
@@ -219,6 +231,23 @@ export default function Home() {
       deadlineMinute,
       homeScore: event.homeScore,
       awayScore: event.awayScore,
+      marketBefore: 0,
+      marketAfter: 0,
+      marketVerified: false,
+    };
+    const immediateStory = fallbackFor(baseContext);
+    setStory(immediateStory);
+    storyRef.current = immediateStory;
+
+    let verifiedShift: VerifiedMarketShift | null = null;
+    try {
+      verifiedShift = await verifiedShiftFor(event, controller.signal);
+    } catch {
+      if (controller.signal.aborted) return;
+    }
+
+    const context: StoryDirectorInput = {
+      ...baseContext,
       marketBefore: verifiedShift?.before ?? 0,
       marketAfter: verifiedShift?.after ?? 0,
       marketVerified: Boolean(verifiedShift),
@@ -243,10 +272,12 @@ export default function Home() {
     if (controller.signal.aborted) return;
     setStory(directedStory);
     setDirectorState(directedStory.source);
-    setSelected(null);
-    selectedRef.current = null;
-    setResult("pending");
-    resultRef.current = "pending";
+    if (event.id !== OPENING_EVENT.id || selectedRef.current === null) {
+      setSelected(null);
+      selectedRef.current = null;
+      setResult("pending");
+      resultRef.current = "pending";
+    }
 
     if (event.id === OPENING_EVENT.id) {
       openingSnapshotRef.current = {
@@ -324,7 +355,7 @@ export default function Home() {
       : round.eventId === OPENING_EVENT.id ? "Start replay" : "Reset demo";
 
   function lockPick(id: PredictionId) {
-    if (selected || directorState === "directing") return;
+    if (selected || (directorState === "directing" && round.eventId !== OPENING_EVENT.id)) return;
     setSelected(id);
     selectedRef.current = id;
     setResult("pending");
@@ -408,8 +439,27 @@ export default function Home() {
   }
 
   function startJudgePitch() {
+    setActiveFixtureId(DEMO_MATCH.fixtureId);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("fixture");
+    window.history.replaceState(null, "", url);
     resetDemo();
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function selectMatch(fixtureId: number) {
+    setActiveFixtureId(fixtureId);
+    const url = new URL(window.location.href);
+    if (fixtureId === DEMO_MATCH.fixtureId) url.searchParams.delete("fixture");
+    else url.searchParams.set("fixture", String(fixtureId));
+    window.history.replaceState(null, "", url);
+    setPlaying(false);
+    if (fixtureId === DEMO_MATCH.fixtureId) {
+      resetDemo();
+      return;
+    }
+    directorControllerRef.current?.abort();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   }
 
   const judgeCompleted = verifiedCalls.length >= 2 && Boolean(proofSignature);
@@ -454,7 +504,6 @@ export default function Home() {
       label: "Lock Spain yellow card",
       detail: "Say: fans predict the next narrative beat for XP — never money.",
       onClick: () => lockPick("card"),
-      disabled: directorState === "directing",
     };
   } else if (!playing) {
     judgeAction = {
@@ -479,11 +528,14 @@ export default function Home() {
           PLOT <i>TWIST</i>
         </a>
         <div className="navActions">
-          <div className="livePill"><span /> {playing ? `REPLAY · ${lastEvent.toUpperCase()}` : replayLoading ? "LOADING TXLINE REPLAY" : `TXLINE REPLAY · ${DEMO_MATCH.home.code} vs ${DEMO_MATCH.away.code}`}</div>
+          <div className="livePill"><span /> {activeFixtureId !== DEMO_MATCH.fixtureId ? "TXLINE MATCH CENTER" : playing ? `REPLAY · ${lastEvent.toUpperCase()}` : replayLoading ? "LOADING TXLINE REPLAY" : `TXLINE REPLAY · ${DEMO_MATCH.home.code} vs ${DEMO_MATCH.away.code}`}</div>
           <button className={`judgeNavButton ${judgeOpen ? "active" : ""}`} onClick={() => setJudgeOpen((current) => !current)}>
             <Lightning weight="fill" /> Judge mode
           </button>
-          <button className="profile"><span>{xp.toLocaleString("en-US")} XP</span><b>IH</b></button>
+          <div className="trustPill" aria-label={activeFixtureId === DEMO_MATCH.fixtureId ? `${xp.toLocaleString("en-US")} experience points` : "Free fan play with no wager"}>
+            <ShieldCheck weight="fill" />
+            <span>{activeFixtureId === DEMO_MATCH.fixtureId ? `${xp.toLocaleString("en-US")} XP` : "FREE · NO WAGER"}</span>
+          </div>
         </div>
       </header>
 
@@ -495,6 +547,10 @@ export default function Home() {
         verifiedCallCount={verifiedCalls.length}
         completed={judgeCompleted}
       />
+
+      <MatchSelector selectedFixtureId={activeFixtureId} onSelect={selectMatch} />
+
+      {activeFixtureId === DEMO_MATCH.fixtureId ? <>
 
       <section className="hero shell" id="top">
         <div className="eyebrow"><span>VERIFIED MATCH REPLAY</span><span>Powered by TxLINE</span></div>
@@ -565,7 +621,8 @@ export default function Home() {
             <span><Lightning weight="fill" /></span>
             <div><small>YOUR TURN</small><h2>Call the next twist</h2></div>
           </div>
-          <p className="subcopy">What happens before the {round.deadlineMinute}th minute?</p>
+          <b className="deadlineBadge">LOCKS AT {round.deadlineMinute}:00</b>
+          <p className="subcopy">Choose one outcome before the verified window closes.</p>
           <div className="picks">
             {picks.map((pick, index) => {
               const isSelected = selected === pick.id;
@@ -575,7 +632,7 @@ export default function Home() {
                   className={`pick ${isSelected ? "selected" : ""} ${isWinner ? "winner" : ""}`}
                   key={pick.id}
                   onClick={() => lockPick(pick.id as PredictionId)}
-                  disabled={directorState === "directing"}
+                  disabled={Boolean(selected) || (directorState === "directing" && round.eventId !== OPENING_EVENT.id)}
                 >
                   <span className="pickIndex">{isWinner ? <CheckCircle weight="fill" /> : index + 1}</span>
                   <span><b>{pick.label}</b><small>{pick.detail}</small></span>
@@ -585,7 +642,7 @@ export default function Home() {
             })}
           </div>
           {activePick ? (
-            <div className={`locked ${result === "won" ? "success" : result === "lost" ? "missed" : ""}`}>
+            <div className={`locked ${result === "won" ? "success" : result === "lost" ? "missed" : ""}`} role="status">
               {result === "won" ? <><Trophy weight="fill" /> Correct call! +{activePick.xp} XP</> : result === "lost" ? <>Time&apos;s up — the streak resets</> : directorState === "directing" ? <><span className="spinner" /> Event verified — AI directing next round…</> : <><span className="spinner" /> Call locked — watching TxLINE…</>}
             </div>
           ) : directorState === "directing" ? (
@@ -626,15 +683,17 @@ export default function Home() {
           <p>{verifiedReplay ? "Verified TxLINE events now trigger new AI rounds and resolve every locked call." : round.eventId === OPENING_EVENT.id ? "Pick Spain yellow card, then start the verified multi-round replay." : "Reset to the opening goal and run the full judge flow again."}</p>
           <button
             onClick={toggleReplay}
-            disabled={replayLoading || (!playing && round.eventId === OPENING_EVENT.id && directorState === "directing")}
+            disabled={replayLoading || (!playing && round.eventId === OPENING_EVENT.id && directorState === "directing" && !selected)}
           ><Play weight="fill" /> {replayActionLabel}</button>
         </div>
       </section>
 
+      </> : <SelectedMatchExperience fixtureId={activeFixtureId} />}
+
       <section className="businessStrip shell">
-        <div><small>COMMERCIAL PATH · B2B2C</small><h2>A white-label live fan layer for any broadcaster.</h2></div>
-        <p>Media platforms, clubs, creators, and sponsors license PLOT TWIST per tournament or active fan. Every deployment keeps predictions free and monetizes engagement—not outcomes.</p>
-        <div className="businessTags"><span>Sponsored story rounds</span><span>Fan loyalty</span><span>Engagement analytics</span></div>
+        <div><small>COMMERCIAL PATH · B2B2C</small><h2>The live fan layer that writes itself from verified match data.</h2></div>
+        <p>Broadcasters, clubs, and media platforms license PLOT TWIST per tournament or active fan. TxLINE triggers sponsorable rounds automatically; fans always play free.</p>
+        <div className="businessTags"><span>Automatic story rounds</span><span>Fan loyalty</span><span>Sponsor inventory</span></div>
       </section>
 
       <footer className="shell"><span>Live data by <b>TxLINE</b></span><span>Built for the World Cup · On Solana</span></footer>

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Lets CI verify a production build without colliding with an active local
-  // dev server's .next directory.
+  // Dev owns .next; production scripts use .next-build so their assets never
+  // overwrite an active local server.
   distDir: process.env.PLOT_TWIST_DIST_DIR || ".next",
 };
 

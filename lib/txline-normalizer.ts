@@ -1,5 +1,5 @@
 import type { MatchEvent, MatchEventKind, TeamSide } from "./match-events";
-import { parseSseBlock } from "./sse";
+import { parseSseBlock } from "./sse.ts";
 
 type RawScore = {
   FixtureId?: number;
@@ -12,6 +12,10 @@ type RawScore = {
   Participant?: 1 | 2;
   Participant1IsHome?: boolean;
   Clock?: { Seconds?: number };
+  Score?: {
+    Participant1?: { Total?: { Goals?: number } };
+    Participant2?: { Total?: { Goals?: number } };
+  };
   Data?: { Outcome?: string };
   Stats?: Record<string, number>;
 };
@@ -30,6 +34,7 @@ function eventKind(raw: RawScore): MatchEventKind | null {
   if (raw.Action === "shot" && raw.Confirmed && raw.Data?.Outcome === "OnTarget") {
     return "shot_on_target";
   }
+  if (raw.Action === "corner" && raw.Confirmed) return "corner";
   if (raw.Action === "status" && raw.StatusId === 2) return "match_started";
   if (raw.Action === "game_finalised" && raw.StatusId === 100) return "match_finished";
   return null;
@@ -43,8 +48,8 @@ export function normalizeTxlineScore(value: unknown, source: "txline" | "replay"
 
   const clockMinute = Math.floor((raw.Clock?.Seconds ?? 0) / 60);
   const minute = kind === "match_finished" && clockMinute === 0 ? 90 : clockMinute;
-  const participantOneGoals = raw.Stats?.["1"] ?? 0;
-  const participantTwoGoals = raw.Stats?.["2"] ?? 0;
+  const participantOneGoals = raw.Score?.Participant1?.Total?.Goals ?? raw.Stats?.["1"] ?? 0;
+  const participantTwoGoals = raw.Score?.Participant2?.Total?.Goals ?? raw.Stats?.["2"] ?? 0;
   const participantOneIsHome = raw.Participant1IsHome !== false;
 
   return {

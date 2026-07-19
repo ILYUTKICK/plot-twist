@@ -10,7 +10,7 @@ type OllamaResponse = {
 };
 
 const cache = new Map<string, DirectedStory>();
-const PROMPT_VERSION = 9;
+const PROMPT_VERSION = 11;
 
 function parseJsonContent(content: string): unknown {
   const trimmed = content.trim();
@@ -43,7 +43,9 @@ function promptFor(input: StoryDirectorInput): string {
     "Write from the immediate moment after the verified event; do not recap anything that happened before it.",
     "Use the supplied probabilities only as market sentiment, not as certainty.",
     "Do not mention probabilities, percentages, odds, or market movement in any field; the server adds the verified market sentence.",
-    "Interpret the trigger literally: a yellow card is only a yellow card, a shot on target is only a shot on target, and a goal is only a goal.",
+    "Interpret the trigger literally: match_started is the verified kickoff; live_state is only the current verified live clock and score; a card is only a card, a shot on target is only a shot on target, a corner is only a corner, and a goal is only a goal.",
+    "For live_state, never say the match or a team started, began, kicked off, or entered the supplied minute.",
+    "For live_state, describe only the current state. Never imply a change such as took the lead, moved ahead, fell behind, drew level, equalized, or changed the match.",
     "Allowed factual claims are only the supplied trigger, trigger team, minute, and current score.",
     "Return only a JSON object. No markdown and no text outside JSON.",
     "The object must contain exactly two strings: headlineLead and headlineAccent.",
@@ -53,6 +55,10 @@ function promptFor(input: StoryDirectorInput): string {
 }
 
 export async function directStory(input: StoryDirectorInput): Promise<DirectedStory> {
+  // A periodic live snapshot is verified context, not a narrative event. Keep it
+  // instant and deterministic; Ollama only narrates confirmed match actions.
+  if (input.trigger === "live_state") return fallbackFor(input);
+
   const apiKey = process.env.OLLAMA_API_KEY;
   const model = process.env.OLLAMA_MODEL ?? "gpt-oss:20b";
   const baseUrl = (process.env.OLLAMA_BASE_URL ?? "https://ollama.com/api").replace(/\/$/, "");

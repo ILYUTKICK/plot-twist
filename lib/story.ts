@@ -23,7 +23,7 @@ export type StoryDirectorInput = {
   homeTeam: string;
   awayTeam: string;
   triggerTeam: string;
-  trigger: "goal" | "yellow_card" | "red_card" | "shot_on_target" | "odds_shift";
+  trigger: "match_started" | "live_state" | "goal" | "yellow_card" | "red_card" | "shot_on_target" | "corner" | "odds_shift";
   minute: number;
   deadlineMinute: number;
   homeScore: number;
@@ -51,6 +51,9 @@ export const FALLBACK_STORY: DirectedStory = {
 const XP: Record<PredictionId, number> = { shot: 140, card: 210, goal: 330 };
 
 function focusTeamFor(input: StoryDirectorInput): { name: string; side: TeamSide } {
+  if (input.trigger === "match_started" || input.trigger === "live_state") {
+    return { name: input.homeTeam, side: "home" };
+  }
   const triggerSide = input.triggerTeam === input.homeTeam ? "home" : "away";
   if (input.trigger === "yellow_card" || input.trigger === "red_card") {
     return { name: input.triggerTeam, side: triggerSide };
@@ -82,6 +85,9 @@ function ordinal(value: number) {
 
 function factualRecapFor(input: StoryDirectorInput) {
   const score = `${input.homeScore}–${input.awayScore}`;
+  if (input.trigger === "match_started" || input.trigger === "live_state") {
+    return `TxLINE confirms ${input.homeTeam} against ${input.awayTeam} is live in the ${ordinal(input.minute)} minute at ${score}. Fans can call the next twist before ${input.deadlineMinute}:00.`;
+  }
   if (input.trigger === "goal") {
     return `${input.triggerTeam} scored in the ${ordinal(input.minute)} minute. The score is now ${score}. Fans can call the next twist before ${input.deadlineMinute}:00.`;
   }
@@ -94,10 +100,27 @@ function factualRecapFor(input: StoryDirectorInput) {
   if (input.trigger === "shot_on_target") {
     return `${input.triggerTeam} recorded a shot on target in the ${ordinal(input.minute)} minute. The score remains ${score}. Fans can call the next twist before ${input.deadlineMinute}:00.`;
   }
+  if (input.trigger === "corner") {
+    return `${input.triggerTeam} won a corner in the ${ordinal(input.minute)} minute. The score remains ${score}. Fans can call the next twist before ${input.deadlineMinute}:00.`;
+  }
   return `The live match picture changed in the ${ordinal(input.minute)} minute with the score at ${score}. Fans can call the next twist before ${input.deadlineMinute}:00.`;
 }
 
 function hasUnsafeNarrative(value: string, input: StoryDirectorInput) {
+  const scorePairs = [...value.matchAll(/\b(\d{1,3})\s*[-–—:]\s*(\d{1,3})\b/g)];
+  if (scorePairs.some((match) => {
+    const first = Number(match[1]);
+    const second = Number(match[2]);
+    const homeAway = first === input.homeScore && second === input.awayScore;
+    const awayHome = first === input.awayScore && second === input.homeScore;
+    return !homeAway && !awayHome;
+  })) return true;
+  const mentionedMinutes = [...value.matchAll(/\b(\d{1,3})(?:st|nd|rd|th)?(?:\s+minute|['’])/gi)];
+  if (mentionedMinutes.some((match) => Number(match[1]) !== input.minute)) return true;
+  if (
+    input.trigger === "live_state"
+    && /\b(start(?:ed|ing|s)?|began|begin(?:ning|s)?|kick[ -]?off|takes?|took|retakes?|retook|claims?|claimed|grabs?|grabbed|seizes?|seized|moves?|moved|goes?|went|falls?|fell|draws?|drew|levels?|levelled|equaliz(?:e|ed|es)|changes?|changed|turns?|turned)\b/i.test(value)
+  ) return true;
   if (
     input.homeScore === input.awayScore
     && /\b(ahead|behind|in the lead|leads?|led|leading|trails?|trailed)\b/i.test(value)
@@ -134,9 +157,11 @@ export function finalizeDirectedStory(
   const headline = `${headlineLead} ${headlineAccent}`;
   if (hasUnsafeNarrative(headline, input)) return null;
 
-  const verifiedMarketLine = input.marketVerified
-    ? `TxLINE recorded ${input.triggerTeam}'s win probability moving from ${input.marketBefore}% to ${input.marketAfter}% after the ${eventLabelFor(input)}.`
-    : `TxLINE confirmed the ${input.trigger.replaceAll("_", " ")} for ${input.triggerTeam} in the ${ordinal(input.minute)} minute.`;
+  const verifiedMarketLine = input.trigger === "match_started" || input.trigger === "live_state"
+    ? `TxLINE confirms ${input.homeTeam} against ${input.awayTeam} is live in the ${ordinal(input.minute)} minute at ${input.homeScore}–${input.awayScore}.`
+    : input.marketVerified
+      ? `TxLINE recorded ${input.triggerTeam}'s win probability moving from ${input.marketBefore}% to ${input.marketAfter}% after the ${eventLabelFor(input)}.`
+      : `TxLINE confirmed the ${input.trigger.replaceAll("_", " ")} for ${input.triggerTeam} in the ${ordinal(input.minute)} minute.`;
 
   return {
     headlineLead,
@@ -154,6 +179,16 @@ export function finalizeDirectedStory(
 export function fallbackFor(input: StoryDirectorInput): DirectedStory {
   const score = `${input.homeScore}–${input.awayScore}`;
   const copy = {
+    match_started: {
+      headlineLead: `${input.homeTeam} versus ${input.awayTeam}`,
+      headlineAccent: `The live chapter is open at ${score}.`,
+      recap: factualRecapFor(input),
+    },
+    live_state: {
+      headlineLead: `${input.homeTeam} versus ${input.awayTeam}`,
+      headlineAccent: `The live chapter is open at ${score}.`,
+      recap: factualRecapFor(input),
+    },
     goal: {
       headlineLead: `${input.triggerTeam} change the story`,
       headlineAccent: `The score is now ${score}.`,
@@ -174,6 +209,11 @@ export function fallbackFor(input: StoryDirectorInput): DirectedStory {
       headlineAccent: "Pressure enters the story.",
       recap: factualRecapFor(input),
     },
+    corner: {
+      headlineLead: `${input.triggerTeam} force a corner`,
+      headlineAccent: "Pressure enters the story.",
+      recap: factualRecapFor(input),
+    },
     odds_shift: {
       headlineLead: "The live picture just moved",
       headlineAccent: "A new chapter is forming.",
@@ -183,9 +223,11 @@ export function fallbackFor(input: StoryDirectorInput): DirectedStory {
   return {
     ...FALLBACK_STORY,
     ...copy,
-    explanation: input.marketVerified
-      ? `TxLINE recorded ${input.triggerTeam}'s win probability moving from ${input.marketBefore}% to ${input.marketAfter}% after the ${eventLabelFor(input)}. A new fan decision window is open.`
-      : `The verified ${input.trigger.replaceAll("_", " ")} opens a new decision window for fans.`,
+    explanation: input.trigger === "match_started" || input.trigger === "live_state"
+      ? `TxLINE confirms ${input.homeTeam} against ${input.awayTeam} is live in the ${ordinal(input.minute)} minute at ${score}. A new fan decision window is open.`
+      : input.marketVerified
+        ? `TxLINE recorded ${input.triggerTeam}'s win probability moving from ${input.marketBefore}% to ${input.marketAfter}% after the ${eventLabelFor(input)}. A new fan decision window is open.`
+        : `The verified ${input.trigger.replaceAll("_", " ")} opens a new decision window for fans.`,
     marketLabel: input.marketVerified ? `${input.triggerTeam} win probability` : "Live event context",
     calls: callsFor(input),
   };

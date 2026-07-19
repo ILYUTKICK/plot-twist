@@ -12,7 +12,7 @@ function validInput(value: unknown): value is StoryDirectorInput {
     && typeof input.homeTeam === "string"
     && typeof input.awayTeam === "string"
     && typeof input.triggerTeam === "string"
-    && ["goal", "yellow_card", "red_card", "shot_on_target", "odds_shift"].includes(String(input.trigger))
+    && ["match_started", "live_state", "goal", "yellow_card", "red_card", "shot_on_target", "corner", "odds_shift"].includes(String(input.trigger))
     && Number.isInteger(input.minute)
     && Number.isInteger(input.deadlineMinute)
     && typeof input.homeScore === "number"

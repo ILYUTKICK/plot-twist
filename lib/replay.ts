@@ -47,16 +47,22 @@ export const DEMO_FALLBACK: ReplayFrame[] = [
 
 type ReplayResponse = { events?: ReplayFrame[] };
 
+const DEMO_EVENT_IDS = new Set(DEMO_FALLBACK.map((event) => event.id));
+
+export function selectDemoReplayFrames(events: ReplayFrame[]): ReplayFrame[] {
+  return events
+    .filter((event) => DEMO_EVENT_IDS.has(event.id))
+    .sort((a, b) => a.seq - b.seq)
+    // The two known events are separated enough for the judge to lock round two.
+    .map((event, index) => ({ ...event, delayMs: 1600 + index * 16000 }));
+}
+
 export async function loadVerifiedDemoReplay(): Promise<ReplayFrame[]> {
   const response = await fetch(`/api/txline/replay/${DEMO_FIXTURE_ID}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Replay request failed (${response.status})`);
   const data = (await response.json()) as ReplayResponse;
 
-  const windowEvents = (data.events ?? [])
-    .filter((event) => event.minute > DEMO_START_MINUTE && event.minute <= 60)
-    // The historical timestamps are compressed into a judge-friendly replay,
-    // while preserving enough time for Ollama to direct the next fan round.
-    .map((event, index) => ({ ...event, delayMs: 1600 + index * 16000 }));
+  const windowEvents = selectDemoReplayFrames(data.events ?? []);
 
   if (!windowEvents.length) throw new Error("Replay contains no events in the demo window");
   return windowEvents;
