@@ -2,13 +2,14 @@
 
 import {
   CheckCircle,
+  Info,
   LinkSimple,
   ShieldCheck,
   SpinnerGap,
   Wallet,
   X,
 } from "@phosphor-icons/react";
-import type { CreateDefaultClientOptions } from "@solana/client";
+import { autoDiscover, createClient, injected } from "@solana/client";
 import { getAddMemoInstruction } from "@solana-program/memo";
 import {
   SolanaProvider,
@@ -32,13 +33,6 @@ type WalletAchievementProps = {
 
 type VerificationState = "idle" | "checking" | "verified" | "invalid" | "unavailable";
 
-const solanaConfig: CreateDefaultClientOptions = {
-  cluster: "devnet",
-  rpc: "https://api.devnet.solana.com",
-  websocket: "wss://api.devnet.solana.com",
-  walletConnectors: "default",
-};
-
 function shortAddress(value: string) {
   return `${value.slice(0, 4)}…${value.slice(-4)}`;
 }
@@ -48,6 +42,18 @@ function friendlyError(value: unknown) {
   if (/reject|declin|cancel/i.test(message)) return "Signature cancelled — nothing was sent.";
   if (/insufficient|balance|fund/i.test(message)) return "This wallet needs a small amount of devnet SOL for the network fee.";
   return "The achievement did not land. Check the wallet network and try again.";
+}
+
+function friendlyConnectionError(value: unknown) {
+  const message = value instanceof Error ? value.message : String(value);
+  if (/reject|declin|cancel/i.test(message)) return "Wallet connection was cancelled.";
+  if (/no wallet standard|no accounts|unavailable|not found/i.test(message)) {
+    return "No unlocked Wallet Standard extension was detected. Open this site in a regular browser tab, unlock Phantom, and refresh.";
+  }
+  if (/pending|already.*request/i.test(message)) {
+    return "A wallet request is already open. Approve or cancel it in the extension, then try again.";
+  }
+  return `Wallet connection failed: ${message.slice(0, 180)}`;
 }
 
 function WalletAchievementPanel({
@@ -158,8 +164,13 @@ function WalletAchievementPanel({
       await connect(connectorId);
       setModalOpen(false);
     } catch (error) {
-      setClaimError(friendlyError(error));
+      setClaimError(friendlyConnectionError(error));
     }
+  }
+
+  function openWalletModal() {
+    setClaimError(null);
+    setModalOpen(true);
   }
 
   async function stampProof() {
@@ -217,7 +228,7 @@ function WalletAchievementPanel({
               <SpinnerGap className="spinIcon" /> Verifying on Solana… <LinkSimple />
             </a>
           ) : walletStatus !== "connected" ? (
-            <button className="proofAction" onClick={() => setModalOpen(true)}>
+            <button className="proofAction" onClick={openWalletModal}>
               <Wallet weight="fill" /> Connect wallet
             </button>
           ) : (
@@ -231,7 +242,8 @@ function WalletAchievementPanel({
         {(claimError || transaction.error || connectionError || verificationState === "invalid" || verificationState === "unavailable") ? (
           <p className="proofError" role="alert">{
             claimError
-              ?? (transaction.error || connectionError ? friendlyError(transaction.error ?? connectionError) : null)
+              ?? (connectionError ? friendlyConnectionError(connectionError) : null)
+              ?? (transaction.error ? friendlyError(transaction.error) : null)
               ?? (verificationState === "invalid"
                 ? "The saved achievement is not a valid PLOT TWIST Memo signed by this wallet. Stamp a new one."
                 : "Solana verification is temporarily unavailable. The saved signature was not trusted.")
@@ -254,6 +266,10 @@ function WalletAchievementPanel({
                 </button>
               )) : <span>No Wallet Standard wallet detected. Install or open one, then refresh this page.</span>}
             </div>
+            {(claimError || connectionError) ? (
+              <p className="walletModalError" role="alert">{claimError ?? friendlyConnectionError(connectionError)}</p>
+            ) : null}
+            <div className="walletModalHint"><Info /> Open the production URL in a regular Chrome, Brave, or Safari tab. Wallet extensions are not injected into embedded preview browsers.</div>
           </div>
         </div>
       ) : null}
@@ -262,9 +278,28 @@ function WalletAchievementPanel({
 }
 
 export function WalletAchievement(props: WalletAchievementProps) {
+  const client = useMemo(() => {
+    const discovered = autoDiscover({
+      overrides: () => ({ defaultChain: "solana:devnet" }),
+    });
+    const walletConnectors = discovered.length > 0
+      ? discovered
+      : [injected({
+        defaultChain: "solana:devnet",
+        name: "Browser wallet",
+      })];
+    return createClient({
+      endpoint: "https://api.devnet.solana.com",
+      websocketEndpoint: "wss://api.devnet.solana.com",
+      walletConnectors,
+    });
+  }, []);
+
+  useEffect(() => () => client.destroy(), [client]);
+
   return (
     <SolanaProvider
-      config={solanaConfig}
+      client={client}
       walletPersistence={{ autoConnect: true, storageKey: "plot-twist-wallet" }}
     >
       <WalletAchievementPanel {...props} />
