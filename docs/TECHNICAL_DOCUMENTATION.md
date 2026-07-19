@@ -131,7 +131,8 @@ The connected wallet approves a Solana devnet Memo containing a compact,
 versioned fan-session record: fixture, event-ID prefixes, calls, XP, wallet,
 network, and issue time.
 
-`GET /api/solana/achievement/{signature}` calls `getTransaction` and checks that:
+`GET /api/solana/achievement/{signature}?wallet=...&fixtureId=...` calls
+`getTransaction` and checks that:
 
 - the transaction succeeded;
 - the requested signature is the transaction's first signature;
@@ -152,7 +153,7 @@ succeeds.
 | `GET /api/txline/stream?feed=odds&fixtureId=…` | Proxied odds SSE. |
 | `POST /api/story-director` | Validated Ollama headline generation. |
 | `POST /api/voice-recap` | Server-side premium audio generation. |
-| `GET /api/solana/achievement/{signature}` | Server-side on-chain achievement verification. |
+| `GET /api/solana/achievement/{signature}?wallet=...&fixtureId=...` | Server-side on-chain achievement verification. |
 | `GET /api/demo-readiness` | TxLINE, Ollama, and Solana health for the judge path. |
 
 ## Stack and deployment

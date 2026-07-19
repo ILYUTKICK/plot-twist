@@ -20,19 +20,19 @@ visible at the beginning so judges immediately know this is a working app.
 | Time | Screen action | Voiceover |
 | --- | --- | --- |
 | 0–12s | Start on the production hero with the URL visible. Move the cursor across the verified story and fan-call card. | “Football fans have more live data than ever, but most of it never becomes participation. Score apps remain passive, while prediction products usually introduce betting friction.” |
-| 12–27s | Scroll enough to show the free calls, XP, streak, and friends room. | “PLOT TWIST transforms verified match moments into free, contextual what-happens-next calls. There is no wager, payout, token, or promised financial return—only experience points, streaks, and fan identity.” |
-| 27–45s | Open `MATCH CENTER`. Show Finished, Live now, and Upcoming, open the selector, then return to Spain–Belgium. | “This is a working production app. Match Center loads World Cup fixtures from TxLINE and follows the full lifecycle: published previews before kickoff, interactive calls during live coverage, and final statistics with a personal session summary.” |
-| 45–61s | Open `/api/demo-readiness`; point to TxLINE, Ollama, and Solana as `ready`, then return to the app. | “The backend keeps every credential server-side and uses TxLINE fixture snapshots, score snapshots, historical scores, odds updates, and a fixture-scoped score stream. The browser receives only normalized match data.” |
-| 61–76s | Open `JUDGE MODE`. Wait for three green checks, show fixture ID `18218149` and `HISTORICAL REPLAY`, then click `Start clean pitch`. | “For a reliable judge path, Judge Mode replays verified Spain–Belgium fixture one-eight-two-one-eight-one-four-nine. It preserves the original event order, minute, team, score, sequence, and TxLINE event IDs.” |
-| 76–91s | Select `Spain yellow card`, lock it, and click `Start verified replay`. | “I call a Spain yellow card before the verified deadline. The choice is free, scoped to this fixture, and worth experience points—not money.” |
-| 91–108s | Let the replay reach 42′. Point to the successful settlement, TxLINE event, streak, and XP. | “At minute forty-two, the original TxLINE yellow-card event settles my call automatically. Deterministic rules—not the AI—verify the fixture, team, event type, and deadline before awarding XP.” |
-| 108–124s | Show the new headline and the `OLLAMA HEADLINE` label. Hover over the new calls. | “That confirmed event opens a fresh story round. Ollama writes only the emotional headline. The factual recap, available calls, deadline, winner, and XP remain controlled by deterministic server rules.” |
-| 124–138s | Say the line, click `Hear the verified recap`, then stop talking and let roughly 8–10 seconds of ElevenLabs audio play. | “ElevenLabs turns the verified recap into natural match audio, while the API key remains on the server. Now listen to the verified recap.” |
-| 138–153s | Select and lock `Spain shot on target`; let the replay reach 60′ and show `2/2`. | “The next verified event resolves a second fixture-scoped call, producing a two-for-two session and showing the complete repeatable engagement loop.” |
-| 153–166s | Show the Solana achievement section, then switch to the prepared Explorer transaction. | “The fan can preserve the completed session as a wallet-signed Solana achievement. Server-side RPC verification checks the signer, fixture, TxLINE event IDs, calls, and XP.” |
-| 166–178s | Return to the commercial strip/tagline and stop moving the cursor. | “Broadcasters, clubs, and tournament apps can license PLOT TWIST as a white-label fan layer. AI narrates. TxLINE verifies. Solana remembers.” |
+| 12–26s | Scroll enough to show the free calls, XP, streak, and friends room. | “PLOT TWIST transforms verified match moments into free, contextual what-happens-next calls. There is no wager, payout, token, or promised financial return—only experience points, streaks, and fan identity.” |
+| 26–43s | Open `MATCH CENTER`. Show Finished, Live now, and Upcoming, open the selector, then return to Spain–Belgium. | “This is a working production app. Match Center loads World Cup fixtures from TxLINE and follows the full lifecycle: published previews before kickoff, interactive calls during live coverage, and final statistics with a personal session summary.” |
+| 43–58s | Open `/api/demo-readiness`; point to TxLINE, Ollama, and Solana as `ready`, then return to the app. | “The backend keeps every credential server-side and uses TxLINE fixture snapshots, score snapshots, historical scores, odds updates, and a fixture-scoped score stream. The browser receives only normalized match data.” |
+| 58–72s | Open `JUDGE MODE`. Wait for three green checks, show fixture ID `18218149` and `HISTORICAL REPLAY`, then click `Start clean pitch`. | “For a reliable judge path, Judge Mode replays verified Spain–Belgium fixture one-eight-two-one-eight-one-four-nine. It preserves the original event order, minute, team, score, sequence, and TxLINE event IDs.” |
+| 72–82s | Use the Judge Mode button to lock `Spain yellow card`, then immediately click `Start verified replay`. | “I call a Spain yellow card before the verified deadline. The choice is free, fixture-scoped, and worth experience points—not money.” |
+| 82–94s | At 42′, point to the successful settlement. As soon as Judge Mode offers it, click `Lock Spain shot on target`—do not pause here. | “At forty-two, the original TxLINE event resolves my call. Deterministic rules—not AI—check the fixture, team, event type, and deadline.” |
+| 94–108s | Keep the second call locked; let the replay reach 60′ and show the completed `2/2` session, XP, and streak. | “The next verified event resolves a second fixture-scoped call, producing a two-for-two session and completing the repeatable engagement loop.” |
+| 108–124s | Point to the latest headline and the `OLLAMA HEADLINE` label, then hover over the factual recap. | “Each confirmed event opens a fresh story round. Ollama writes only the emotional headline. The factual recap, calls, deadlines, winner, and XP remain controlled by deterministic server rules.” |
+| 124–140s | Say the line, click `Hear the verified recap`, then stop talking and let roughly 8–10 seconds of ElevenLabs audio play. | “ElevenLabs turns the verified recap into natural match audio, while the API key remains on the server. Now listen to the verified recap.” |
+| 140–154s | Show the Solana achievement section, then switch to the prepared Explorer transaction. Do not wait for a fresh wallet popup during the recording. | “The fan can preserve the completed session as a wallet-signed Solana achievement. Server-side RPC verification checks the signer, fixture, TxLINE event IDs, calls, and XP.” |
+| 154–168s | Return to the commercial strip/tagline and stop moving the cursor. | “Broadcasters, clubs, and tournament apps can license PLOT TWIST as a white-label fan layer. AI narrates. TxLINE verifies. Solana remembers.” |
 
-Target duration: **about 2 minutes 58 seconds**, including the ElevenLabs audio sample. Anything below five minutes is valid;
+Target duration: **about 2 minutes 48 seconds**, including the ElevenLabs audio sample. Anything below five minutes is valid;
 clarity is more important than rushing to exactly two minutes.
 
 ## What the video proves
@@ -65,6 +65,9 @@ clarity is more important than rushing to exactly two minutes.
   **wallet-signed Solana achievement**.
 - Show fixture ID `18218149`, `HISTORICAL REPLAY`, and at least one verified event
   settlement clearly.
+- After starting the replay, lock `Spain shot on target` as soon as the 42′ round
+  resolves. The verified 60′ event arrives about 16 seconds later and must not
+  pass before the second call is locked.
 - End on the B2B2C licensing model rather than implementation details.
 - Export at 1080p and verify audio, cursor visibility, and text readability.
 - Upload the final video to **YouTube as Unlisted** or to **Loom**. Test the link in
