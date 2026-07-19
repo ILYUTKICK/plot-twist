@@ -52,8 +52,10 @@ is a second-screen engagement and loyalty layer.
 
 Closing line: **AI narrates. TxLINE verifies. Solana remembers.**
 
-`Hear verified match recap` uses the browser Web Speech API. It is text-to-speech,
-not a generated clone voice, and needs no additional API key.
+`Hear verified match recap` uses a server-side ElevenLabs voice route with
+`eleven_multilingual_v2` for natural match narration. The API key never reaches
+the browser; if the provider or quota is unavailable, playback falls back to the
+browser Web Speech API so the fan flow remains usable.
 
 ## What is real in the demo
 
@@ -61,6 +63,7 @@ not a generated clone voice, and needs no additional API key.
 - A Belgium equalizer event followed by Spain yellow-card and shot-on-target events
 - Same-fixture historical 1X2 market movement around the equalizer: `4.6% -> 13.1%`
 - Ollama Cloud (`gpt-oss:20b`) narrative generation with a safe local fallback
+- ElevenLabs premium recap audio with a browser voice fallback
 - Fixture-, team-, event-, and deadline-aware deterministic call resolution
 - Wallet Standard connection and wallet-approved Solana devnet Memo transaction
 - Server-side `getTransaction` verification of signature, signer, Memo, fixture,
@@ -90,7 +93,7 @@ TxLINE score/odds payload
   -> deterministic trigger + call builder
      -> Ollama headline only
      -> deterministic resolver + XP
-     -> browser SpeechSynthesis (optional)
+     -> server-side ElevenLabs recap audio (browser fallback)
      -> wallet-approved Solana achievement Memo
   -> server RPC verifier -> trusted achievement UI
 ```
@@ -176,8 +179,8 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Configure the server-only
-TxLINE and Ollama values in `.env.local`; never prefix either secret with
-`NEXT_PUBLIC_`.
+TxLINE, Ollama, and ElevenLabs values in `.env.local`; never prefix any secret
+with `NEXT_PUBLIC_`.
 
 If the browser wallet needs devnet SOL, fund its displayed address from a funded
 CLI wallet:
@@ -201,15 +204,18 @@ fixture/team/deadline-aware resolution, compact v2 Memo generation, v1
 compatibility, and rejection of forged XP or cross-fixture events.
 
 For deployment, set `TXLINE_API_ORIGIN`, `TXLINE_API_TOKEN`, `OLLAMA_BASE_URL`,
-`OLLAMA_API_KEY`, and `OLLAMA_MODEL`. `SOLANA_RPC_URL` is optional and defaults to
-Solana's public devnet endpoint. Then open `/api/demo-readiness`; all three checks
-must report `ready` before recording the demo.
+`OLLAMA_API_KEY`, `OLLAMA_MODEL`, and `ELEVENLABS_API_KEY`. The ElevenLabs voice
+ID and model have safe defaults but can be overridden. `SOLANA_RPC_URL` is
+optional and defaults to Solana's public devnet endpoint. Then open
+`/api/demo-readiness`; all three core checks must report `ready` before recording
+the demo, and play one recap to verify premium audio.
 
 ## Submission links
 
 - Live app: https://plot-twist-six.vercel.app
 - Public repository: https://github.com/ILYUTKICK/plot-twist
-- Demo video: https://ilyutkick.github.io/plot-twist/
-- [60-second recording script](docs/DEMO_SCRIPT.md)
+- Demo video: pending final Loom or unlisted YouTube upload
+- [3-minute submission recording script](docs/DEMO_SCRIPT.md)
+- [Technical documentation](docs/TECHNICAL_DOCUMENTATION.md)
 - [Competitive interface review](docs/COMPETITIVE_INTERFACE_REVIEW.md)
 - [Ready-to-paste submission copy](docs/SUBMISSION.md)

@@ -1,36 +1,89 @@
-# PLOT TWIST — 60-second demo script
+# PLOT TWIST — 3-minute submission demo
 
-Record at 1920×1080 with the browser zoom at 90–100%. Keep Solana Explorer open
-in a second tab. Use the same devnet wallet that owns the existing achievement so
-the RPC verifier can recognize the saved transaction after the second call.
+This version is designed to satisfy the TxLINE screening requirements: it states
+the problem, walks through the working production app, explains how TxLINE powers
+the backend, and closes with the business case. Read the English voiceover
+verbatim at a calm pace.
 
-## Shot list
+## Tabs to prepare
+
+1. Production app: https://plot-twist-six.vercel.app
+2. Backend readiness: https://plot-twist-six.vercel.app/api/demo-readiness
+3. Existing Solana devnet transaction:
+   https://explorer.solana.com/tx/2XY2q4xJk9adgBEPXxR8bPXuvGmnNkipd4a7bSejrQXFxB1qq7KqUrMVjwJNat9V9zson4MHBeCVB6EQfjcDAZcM?cluster=devnet
+
+Record at 1920×1080 with browser zoom at 90–100%. Keep the production URL
+visible at the beginning so judges immediately know this is a working app.
+
+## Shot list and exact voiceover
 
 | Time | Screen action | Voiceover |
 | --- | --- | --- |
-| 0–5s | Briefly open `MATCH CENTER`, show Finished / Live / Upcoming, then return to Spain–Belgium | “PLOT TWIST follows the whole match lifecycle: preview, live fan calls, and a personal final summary.” |
-| 5–11s | Open `JUDGE MODE`; show three green checks | “This is a real Spain–Belgium TxLINE fixture replay, with Ollama and Solana devnet ready.” |
-| 11–17s | Click `Start clean pitch`, then `Lock Spain yellow card` | “I call the next plot twist for XP—not money.” |
-| 17–22s | Click `Start verified replay`; let 42′ resolve | “The original TxLINE yellow-card event settles it automatically.” |
-| 22–31s | Show the new headline; lock `Spain shot on target` | “Ollama writes the emotional headline. Deterministic rules still own the calls, facts, and scoring.” |
-| 31–41s | Let the 60′ event resolve; show `2/2` and `+350 XP` | “A second verified event creates and resolves a fresh round.” |
-| 41–51s | Show the Solana achievement and verified state | “The fan can stamp the session as a wallet-signed Solana achievement, which the server verifies through RPC.” |
-| 51–56s | Open Solana Explorer Memo transaction | “The Memo preserves the exact fixture and resolved TxLINE event IDs.” |
-| 56–60s | Return to commercial strip | “Broadcasters license the white-label engagement layer. AI narrates. TxLINE verifies. Solana remembers.” |
+| 0–12s | Start on the production hero with the URL visible. Move the cursor across the verified story and fan-call card. | “Football fans have more live data than ever, but most of it never becomes participation. Score apps remain passive, while prediction products usually introduce betting friction.” |
+| 12–27s | Scroll enough to show the free calls, XP, streak, and friends room. | “PLOT TWIST transforms verified match moments into free, contextual what-happens-next calls. There is no wager, payout, token, or promised financial return—only experience points, streaks, and fan identity.” |
+| 27–45s | Open `MATCH CENTER`. Show Finished, Live now, and Upcoming, open the selector, then return to Spain–Belgium. | “This is a working production app. Match Center loads World Cup fixtures from TxLINE and follows the full lifecycle: published previews before kickoff, interactive calls during live coverage, and final statistics with a personal session summary.” |
+| 45–61s | Open `/api/demo-readiness`; point to TxLINE, Ollama, and Solana as `ready`, then return to the app. | “The backend keeps every credential server-side and uses TxLINE fixture snapshots, score snapshots, historical scores, odds updates, and a fixture-scoped score stream. The browser receives only normalized match data.” |
+| 61–76s | Open `JUDGE MODE`. Wait for three green checks, show fixture ID `18218149` and `HISTORICAL REPLAY`, then click `Start clean pitch`. | “For a reliable judge path, Judge Mode replays verified Spain–Belgium fixture one-eight-two-one-eight-one-four-nine. It preserves the original event order, minute, team, score, sequence, and TxLINE event IDs.” |
+| 76–91s | Select `Spain yellow card`, lock it, and click `Start verified replay`. | “I call a Spain yellow card before the verified deadline. The choice is free, scoped to this fixture, and worth experience points—not money.” |
+| 91–108s | Let the replay reach 42′. Point to the successful settlement, TxLINE event, streak, and XP. | “At minute forty-two, the original TxLINE yellow-card event settles my call automatically. Deterministic rules—not the AI—verify the fixture, team, event type, and deadline before awarding XP.” |
+| 108–124s | Show the new headline and the `OLLAMA HEADLINE` label. Hover over the new calls. | “That confirmed event opens a fresh story round. Ollama writes only the emotional headline. The factual recap, available calls, deadline, winner, and XP remain controlled by deterministic server rules.” |
+| 124–138s | Say the line, click `Hear the verified recap`, then stop talking and let roughly 8–10 seconds of ElevenLabs audio play. | “ElevenLabs turns the verified recap into natural match audio, while the API key remains on the server. Now listen to the verified recap.” |
+| 138–153s | Select and lock `Spain shot on target`; let the replay reach 60′ and show `2/2`. | “The next verified event resolves a second fixture-scoped call, producing a two-for-two session and showing the complete repeatable engagement loop.” |
+| 153–166s | Show the Solana achievement section, then switch to the prepared Explorer transaction. | “The fan can preserve the completed session as a wallet-signed Solana achievement. Server-side RPC verification checks the signer, fixture, TxLINE event IDs, calls, and XP.” |
+| 166–178s | Return to the commercial strip/tagline and stop moving the cursor. | “Broadcasters, clubs, and tournament apps can license PLOT TWIST as a white-label fan layer. AI narrates. TxLINE verifies. Solana remembers.” |
+
+Target duration: **about 2 minutes 58 seconds**, including the ElevenLabs audio sample. Anything below five minutes is valid;
+clarity is more important than rushing to exactly two minutes.
+
+## What the video proves
+
+- **Problem:** mainstream football viewing is passive; betting and dense data
+  dashboards add friction.
+- **Working app:** judges see the public production URL and interact with the
+  Match Center, story round, calls, settlement, XP, and achievement.
+- **TxLINE backend:** the video shows live readiness and explains guest auth,
+  server-side credentials, normalized fixtures, scores, events, and odds.
+- **Business and technical value:** the closing explains the B2B2C white-label
+  model and the deterministic AI safety boundary.
 
 ## Recording checklist
 
-- Run `/api/demo-readiness` immediately before recording; all checks must be green.
-- Confirm the Match Center loads all three phases; return to Spain–Belgium before starting Judge Mode.
-- Keep the browser wallet on Solana devnet and funded with at least `0.01 SOL`.
-- Confirm the opening tag says `OLLAMA HEADLINE`; if it says fallback, reload once.
-- Do not call the Memo a TxLINE-signed proof. Say “wallet-signed achievement.”
-- Show the fixture ID `18218149`, `HISTORICAL REPLAY`, and the Explorer transaction.
-- End on the B2B2C licensing model, not on implementation details.
-- Export MP4 at 1080p; verify audio, cursor visibility, and link access in incognito.
+- Open the production app in an incognito window and confirm it loads without a
+  Vercel sign-in screen.
+- Open `/api/demo-readiness` immediately before recording; TxLINE, Ollama, and
+  Solana must all report `ready`.
+- Confirm Match Center has loaded before recording; return to Spain–Belgium before
+  starting Judge Mode.
+- Use the same Solana devnet wallet that owns the existing achievement, or show
+  the prepared Explorer transaction if a fresh wallet confirmation is slow.
+- Keep at least `0.01 SOL` in the demo wallet if stamping a new achievement.
+- When demonstrating ElevenLabs, finish your sentence before clicking the audio
+  button and do not speak over the generated recap.
+- Never show `.env.local`, Vercel settings, API tokens, wallet seed phrases, or
+  browser extension internals.
+- Do not call the Memo a “TxLINE proof” or “TxLINE-signed proof.” Say
+  **wallet-signed Solana achievement**.
+- Show fixture ID `18218149`, `HISTORICAL REPLAY`, and at least one verified event
+  settlement clearly.
+- End on the B2B2C licensing model rather than implementation details.
+- Export at 1080p and verify audio, cursor visibility, and text readability.
+- Upload the final video to **YouTube as Unlisted** or to **Loom**. Test the link in
+  incognito before adding it to the submission.
+- Put the production URL and public repository in the video description.
 
-## Existing transaction backup
+## Suggested video title and description
 
-If a fresh wallet confirmation is slow, use the already verified devnet transaction:
+**Title**
 
-https://explorer.solana.com/tx/2XY2q4xJk9adgBEPXxR8bPXuvGmnNkipd4a7bSejrQXFxB1qq7KqUrMVjwJNat9V9zson4MHBeCVB6EQfjcDAZcM?cluster=devnet
+`PLOT TWIST — TxLINE Consumer & Fan Experience Demo`
+
+**Description**
+
+```text
+PLOT TWIST turns verified football events into free, playable fan calls.
+
+Live app: https://plot-twist-six.vercel.app
+Source: https://github.com/ILYUTKICK/plot-twist
+
+AI narrates. TxLINE verifies. Solana remembers.
+```

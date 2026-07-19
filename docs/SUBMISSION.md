@@ -1,4 +1,75 @@
-# Submission copy
+# Superteam submission form — ready to paste
+
+## Link to Your Submission
+
+```text
+https://plot-twist-six.vercel.app
+```
+
+## Tweet Link
+
+Optional. Leave blank until the public launch tweet is published, then paste its
+URL here and in the X field below.
+
+## Project Title
+
+```text
+PLOT TWIST
+```
+
+## Briefly explain your Project
+
+```text
+PLOT TWIST is a white-label second-screen football experience that turns verified TxLINE match events into free, contextual “what happens next?” fan calls. Deterministic rules settle every call from the same fixture feed and award non-financial XP, while Ollama narrates the moment, ElevenLabs voices the verified recap, and Solana preserves the completed session as a wallet-signed achievement. The product covers upcoming, live, and finished matches without wagers, payouts, or fabricated match data.
+```
+
+## Link to your live and working MVP
+
+```text
+https://plot-twist-six.vercel.app
+```
+
+## Link to Your Live Demo Video
+
+```text
+ADD FINAL PUBLIC LOOM OR UNLISTED YOUTUBE URL
+```
+
+## Project's Public Repository Link
+
+```text
+https://github.com/ILYUTKICK/plot-twist
+```
+
+## Project's Technical Documentation
+
+```text
+https://github.com/ILYUTKICK/plot-twist/blob/main/docs/TECHNICAL_DOCUMENTATION.md
+```
+
+## Project's X Profile or tweet
+
+Optional. Use the same launch-tweet URL as the Tweet Link field, or leave blank.
+
+## TxLINE API experience and feedback
+
+```text
+We especially liked TxLINE's FixtureId, Seq, and Ts fields because they make cross-feed identity, ordering, replay, and deduplication reliable. Historical score access made a deterministic judge demo possible, while PriceNames with Pct preserved market-participant mapping without inventing probabilities. The main friction was understanding the complete guest-JWT plus activation-token lifecycle, handling historical score responses that use SSE framing, joining score participants to canonical team display names, and locating the fixtureId filter contract for global live streams. One end-to-end authentication example, explicit finite-SSE documentation, and more prominent fixture-filter examples would materially improve developer onboarding.
+```
+
+## Anything Else?
+
+```text
+Judge path: open the production app, click JUDGE MODE, and run the verified Spain–Belgium historical replay for TxLINE fixture 18218149. Runtime readiness: https://plot-twist-six.vercel.app/api/demo-readiness
+
+Existing wallet-signed Solana devnet achievement: https://explorer.solana.com/tx/2XY2q4xJk9adgBEPXxR8bPXuvGmnNkipd4a7bSejrQXFxB1qq7KqUrMVjwJNat9V9zson4MHBeCVB6EQfjcDAZcM?cluster=devnet
+
+There is no wager, stake, payout, token reward, or promised financial value. AI narrates. TxLINE verifies. Solana remembers.
+```
+
+---
+
+# Supporting long-form copy
 
 ## Project name
 
@@ -82,16 +153,17 @@ server-side fixture filters on the global live streams.
 
 - Live app: https://plot-twist-six.vercel.app
 - Public repository: https://github.com/ILYUTKICK/plot-twist
-- Demo video: https://ilyutkick.github.io/plot-twist/
+- Technical documentation: https://github.com/ILYUTKICK/plot-twist/blob/main/docs/TECHNICAL_DOCUMENTATION.md
+- Demo video: **ADD FINAL LOOM OR UNLISTED YOUTUBE URL AFTER RECORDING**
 - Solana transaction: https://explorer.solana.com/tx/2XY2q4xJk9adgBEPXxR8bPXuvGmnNkipd4a7bSejrQXFxB1qq7KqUrMVjwJNat9V9zson4MHBeCVB6EQfjcDAZcM?cluster=devnet
 
 ## Final pre-submit checklist
 
 - [ ] Public app opens in incognito and `/api/demo-readiness` is green
 - [ ] Public repository contains README and no `.env.local`
-- [x] Demo video is public and plays inline without sign-in
+- [ ] Demo video is public and plays inline without sign-in
 - [ ] Submission links point to the final production artifacts
-- [ ] Technical description names the exact TxLINE endpoints
-- [ ] TxLINE API feedback is included
-- [ ] Wallet language says “wallet-signed achievement,” not “oracle proof”
+- [x] Technical description names the exact TxLINE endpoints
+- [x] TxLINE API feedback is included
+- [x] Wallet language says “wallet-signed achievement,” not “oracle proof”
 - [ ] Submit before the listing closes and reopen the entry to verify it saved

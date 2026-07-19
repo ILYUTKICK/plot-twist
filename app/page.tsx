@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { JudgeMode, type JudgeAction } from "@/components/judge-mode";
 import { MatchSelector } from "@/components/match-selector";
 import { SelectedMatchExperience } from "@/components/selected-match-experience";
+import { useRecapAudio } from "@/hooks/use-recap-audio";
 import type { VerifiedCallProof } from "@/lib/achievements";
 import {
   resolvePrediction,
@@ -176,7 +177,7 @@ export default function Home() {
   const [verifiedReplay, setVerifiedReplay] = useState(false);
   const [story, setStory] = useState<DirectedStory>(FALLBACK_STORY);
   const [directorState, setDirectorState] = useState<"directing" | "ollama" | "fallback">("directing");
-  const [voiceState, setVoiceState] = useState<"idle" | "speaking" | "unsupported">("idle");
+  const { voiceState, speak: playRecap, stop: stopRecap } = useRecapAudio();
   const [marketShift, setMarketShift] = useState<VerifiedMarketShift | null>(null);
   const [round, setRound] = useState<StoryRound>(OPENING_ROUND);
   const [xp, setXp] = useState(2310);
@@ -217,9 +218,8 @@ export default function Home() {
     };
     setRound(nextRound);
     setDirectorState("directing");
-    setVoiceState("idle");
+    stopRecap();
     setMarketShift(null);
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 
     const baseContext: StoryDirectorInput = {
       fixtureId: event.fixtureId,
@@ -286,14 +286,13 @@ export default function Home() {
         round: nextRound,
       };
     }
-  }, []);
+  }, [stopRecap]);
 
   useEffect(() => {
     void requestRound(OPENING_EVENT, DEMO_DEADLINE_MINUTE);
 
     return () => {
       directorControllerRef.current?.abort();
-      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     };
   }, [requestRound]);
 
@@ -366,7 +365,7 @@ export default function Home() {
     setPlaying(false);
     setReplayLoading(false);
     directorControllerRef.current?.abort();
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    stopRecap();
     const opening = openingSnapshotRef.current;
     if (opening) {
       setStory(opening.story);
@@ -385,13 +384,12 @@ export default function Home() {
     selectedRef.current = null;
     setResult("pending");
     resultRef.current = "pending";
-    setVoiceState("idle");
     setXp(2310);
     setStreak(4);
     setVerifiedCalls([]);
     setVerifiedReplay(false);
     setReplayFrames(DEMO_FALLBACK);
-  }, [requestRound]);
+  }, [requestRound, stopRecap]);
 
   async function toggleReplay() {
     if (playing) {
@@ -420,18 +418,7 @@ export default function Home() {
   }
 
   function speakRecap() {
-    if (!("speechSynthesis" in window)) {
-      setVoiceState("unsupported");
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(story.recap);
-    utterance.lang = "en-US";
-    utterance.rate = 1.03;
-    utterance.onstart = () => setVoiceState("speaking");
-    utterance.onend = () => setVoiceState("idle");
-    utterance.onerror = () => setVoiceState("idle");
-    window.speechSynthesis.speak(utterance);
+    void playRecap(story.recap);
   }
 
   function scrollToProof() {
@@ -459,7 +446,7 @@ export default function Home() {
       return;
     }
     directorControllerRef.current?.abort();
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    stopRecap();
   }
 
   const judgeCompleted = verifiedCalls.length >= 2 && Boolean(proofSignature);
@@ -582,10 +569,10 @@ export default function Home() {
           <div className="cardTop">
             <span className="twistTag"><Lightning weight="fill" /> THE PLOT JUST FLIPPED · {directorLabel}</span>
             <button
-              className={`iconButton ${voiceState === "speaking" ? "speaking" : ""}`}
+              className={`iconButton ${voiceState === "speaking" || voiceState === "fallback" ? "speaking" : ""}`}
               aria-label="Play verified match recap"
               onClick={speakRecap}
-              disabled={directorState === "directing"}
+              disabled={directorState === "directing" || voiceState === "loading"}
             ><SpeakerHigh /></button>
           </div>
           <h1>{story.headlineLead}<br /><em>{story.headlineAccent}</em></h1>
@@ -609,9 +596,13 @@ export default function Home() {
               </div>
             )}
           </div>
-          <button className="listen" onClick={speakRecap} disabled={directorState === "directing"}>
+          <button className="listen" onClick={speakRecap} disabled={directorState === "directing" || voiceState === "loading"}>
             <Play weight="fill" />
-            {voiceState === "speaking" ? "Speaking verified recap…" : voiceState === "unsupported" ? "Voice unavailable in this browser" : "Hear the 12-sec verified recap"}
+            {voiceState === "loading" ? "Preparing studio voice…"
+              : voiceState === "speaking" ? "Playing ElevenLabs recap…"
+                : voiceState === "fallback" ? "Browser voice fallback…"
+                  : voiceState === "unsupported" ? "Voice unavailable in this browser"
+                    : "Hear the 12-sec verified recap"}
             {story.latencyMs && voiceState === "idle" ? ` · directed in ${(story.latencyMs / 1000).toFixed(1)}s` : ""}
           </button>
         </article>

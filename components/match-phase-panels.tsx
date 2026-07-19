@@ -18,6 +18,7 @@ import {
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTxlineScoreStream } from "@/hooks/use-txline-score-stream";
+import { useRecapAudio } from "@/hooks/use-recap-audio";
 import type { VerifiedCallProof } from "@/lib/achievements";
 import {
   emptyFanSession,
@@ -200,7 +201,7 @@ export function LiveMatchPanel({ match, onVerifiedEvent }: LiveMatchPanelProps) 
   const [lastSettlement, setLastSettlement] = useState<SettledFanCall | null>(null);
   const [session, setSession] = useState<FanSession>(() => emptyFanSession(match.fixtureId));
   const [sessionReady, setSessionReady] = useState(false);
-  const [voiceState, setVoiceState] = useState<"idle" | "speaking" | "unsupported">("idle");
+  const { voiceState, speak: playRecap, stop: stopRecap } = useRecapAudio();
   const processedRef = useRef(new Set<string>());
   const initialisedRef = useRef(false);
   const activeCallRef = useRef<ActiveFanCall | null>(null);
@@ -231,6 +232,7 @@ export function LiveMatchPanel({ match, onVerifiedEvent }: LiveMatchPanelProps) 
 
   const beginRound = useCallback(async (event: MatchEvent) => {
     if (!isStoryEventKind(event.kind)) return;
+    stopRecap();
     const triggerTeam = teamName(match, event.team);
     const deadlineMinute = predictionDeadlineFor(event.minute);
     if ((match.minute ?? event.minute) >= deadlineMinute) return;
@@ -276,7 +278,7 @@ export function LiveMatchPanel({ match, onVerifiedEvent }: LiveMatchPanelProps) 
     } catch {
       if (!controller.signal.aborted) setDirectorState("fallback");
     }
-  }, [match]);
+  }, [match, stopRecap]);
 
   const processEvent = useCallback((event: MatchEvent) => {
     if (event.fixtureId !== match.fixtureId || processedRef.current.has(event.id)) return;
@@ -372,18 +374,7 @@ export function LiveMatchPanel({ match, onVerifiedEvent }: LiveMatchPanelProps) 
   };
 
   const speak = () => {
-    if (!story || !("speechSynthesis" in window)) {
-      setVoiceState("unsupported");
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(story.recap);
-    utterance.lang = "en-US";
-    utterance.rate = 1.03;
-    utterance.onstart = () => setVoiceState("speaking");
-    utterance.onend = () => setVoiceState("idle");
-    utterance.onerror = () => setVoiceState("idle");
-    window.speechSynthesis.speak(utterance);
+    if (story) void playRecap(story.recap);
   };
 
   const proofs = useMemo(() => verifiedProofs(session), [session]);
@@ -398,7 +389,11 @@ export function LiveMatchPanel({ match, onVerifiedEvent }: LiveMatchPanelProps) 
           <div className="storyGlow" />
           <div className="cardTop">
             <span className="twistTag"><Lightning weight="fill" /> LIVE PLOT ROUND · {directorLabel}</span>
-            <button className={`iconButton ${voiceState === "speaking" ? "speaking" : ""}`} onClick={speak} disabled={!story}><SpeakerHigh /></button>
+            <button
+              className={`iconButton ${voiceState === "speaking" || voiceState === "fallback" ? "speaking" : ""}`}
+              onClick={speak}
+              disabled={!story || voiceState === "loading"}
+            ><SpeakerHigh /></button>
           </div>
           {story && round ? <>
             <h1>{story.headlineLead}<br /><em>{story.headlineAccent}</em></h1>
@@ -407,7 +402,14 @@ export function LiveMatchPanel({ match, onVerifiedEvent }: LiveMatchPanelProps) 
               <div><span>Verified event context</span><b>TxLINE · {round.event.minute}′</b></div>
               <div className="eventPulse"><span><Lightning weight="fill" /> {EVENT_NAME[round.event.kind as keyof typeof EVENT_NAME]}</span><strong>{teamName(match, round.event.team)}</strong></div>
             </div>
-            <button className="listen" onClick={speak}><Play weight="fill" /> {voiceState === "speaking" ? "Speaking verified recap…" : "Hear the verified recap"}</button>
+            <button className="listen" onClick={speak} disabled={voiceState === "loading"}>
+              <Play weight="fill" />
+              {voiceState === "loading" ? "Preparing studio voice…"
+                : voiceState === "speaking" ? "Playing ElevenLabs recap…"
+                  : voiceState === "fallback" ? "Browser voice fallback…"
+                    : voiceState === "unsupported" ? "Voice unavailable in this browser"
+                      : "Hear the verified recap"}
+            </button>
           </> : <div className="waitingForEvent"><CircleNotch className="spinIcon" /><h1>Waiting for the next<br /><em>verified plot event.</em></h1><p>Calls open after a goal, card, shot on target, or corner from this fixture&apos;s TxLINE feed.</p></div>}
           <div className="liveSessionBar"><span><i className={streamState === "live" ? "live" : "connecting"} /> SCORE STREAM · {streamState.toUpperCase()}</span><b>{session.xp} XP · {session.streak} STREAK</b></div>
         </article>
