@@ -10,7 +10,7 @@ type OllamaResponse = {
 };
 
 const cache = new Map<string, DirectedStory>();
-const PROMPT_VERSION = 11;
+const PROMPT_VERSION = 12;
 
 function parseJsonContent(content: string): unknown {
   const trimmed = content.trim();
@@ -54,6 +54,81 @@ function promptFor(input: StoryDirectorInput): string {
   ].join("\n");
 }
 
+function repairPromptFor(input: StoryDirectorInput): string {
+  const safeExample = {
+    match_started: {
+      headlineLead: `${input.homeTeam} meet ${input.awayTeam}`,
+      headlineAccent: "The story is now live.",
+    },
+    goal: {
+      headlineLead: `${input.triggerTeam} change the story`,
+      headlineAccent: "Everything feels open.",
+    },
+    yellow_card: {
+      headlineLead: `${input.triggerTeam} see yellow`,
+      headlineAccent: "The temperature just changed.",
+    },
+    red_card: {
+      headlineLead: `${input.triggerTeam} lose a player`,
+      headlineAccent: "The balance just broke.",
+    },
+    shot_on_target: {
+      headlineLead: `${input.triggerTeam} test the target`,
+      headlineAccent: "Pressure enters the story.",
+    },
+    corner: {
+      headlineLead: `${input.triggerTeam} force a corner`,
+      headlineAccent: "Pressure enters the story.",
+    },
+    odds_shift: {
+      headlineLead: "The live picture just moved",
+      headlineAccent: "A new chapter is forming.",
+    },
+    live_state: {
+      headlineLead: `${input.homeTeam} versus ${input.awayTeam}`,
+      headlineAccent: "The live chapter is open.",
+    },
+  }[input.trigger];
+
+  return [
+    "Return one safe football headline as JSON and nothing else.",
+    "The JSON must contain exactly headlineLead and headlineAccent strings.",
+    "Use the supplied safe example verbatim. Do not add numbers, scores, minutes, odds, probabilities, players, roles, tactics, leading, trailing, or match history.",
+    JSON.stringify(safeExample),
+  ].join("\n");
+}
+
+async function requestHeadline(
+  baseUrl: string,
+  apiKey: string,
+  model: string,
+  prompt: string,
+  temperature: number,
+  timeoutMs: number,
+): Promise<unknown> {
+  const response = await fetch(`${baseUrl}/chat`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      stream: false,
+      think: "low",
+      options: { temperature, num_predict: 800 },
+    }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+
+  if (!response.ok) throw new Error(`Ollama request failed (${response.status})`);
+  const data = (await response.json()) as OllamaResponse;
+  if (!data.message?.content) throw new Error("Ollama returned no message content");
+  return parseJsonContent(data.message.content);
+}
+
 export async function directStory(input: StoryDirectorInput): Promise<DirectedStory> {
   // A periodic live snapshot is verified context, not a narrative event. Keep it
   // instant and deterministic; Ollama only narrates confirmed match actions.
@@ -70,34 +145,38 @@ export async function directStory(input: StoryDirectorInput): Promise<DirectedSt
 
   const startedAt = Date.now();
   try {
-    const response = await fetch(`${baseUrl}/chat`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: promptFor(input) }],
-        stream: false,
-        think: "low",
-        options: { temperature: 0.2, num_predict: 800 },
-      }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(20_000),
-    });
-
-    if (!response.ok) throw new Error(`Ollama request failed (${response.status})`);
-    const data = (await response.json()) as OllamaResponse;
-    if (!data.message?.content) throw new Error("Ollama returned no message content");
-
-    const story = finalizeDirectedStory(
-      parseJsonContent(data.message.content),
+    const primary = await requestHeadline(
+      baseUrl,
+      apiKey,
+      model,
+      promptFor(input),
+      0.2,
+      14_000,
+    );
+    let story = finalizeDirectedStory(
+      primary,
       input,
       model,
       Date.now() - startedAt,
     );
-    if (!story) throw new Error("Ollama output failed semantic validation");
+    if (!story) {
+      console.warn("[StoryDirector] Retrying a headline that failed semantic validation");
+      const repaired = await requestHeadline(
+        baseUrl,
+        apiKey,
+        model,
+        repairPromptFor(input),
+        0,
+        6_000,
+      );
+      story = finalizeDirectedStory(
+        repaired,
+        input,
+        model,
+        Date.now() - startedAt,
+      );
+    }
+    if (!story) throw new Error("Ollama output failed semantic validation twice");
     cache.set(cacheKey, story);
     return story;
   } catch (error) {
