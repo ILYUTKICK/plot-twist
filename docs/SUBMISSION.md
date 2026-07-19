@@ -80,7 +80,7 @@ server-side fixture filters on the global live streams.
 
 ## Links
 
-- Live app: add after deployment
+- Live app: https://plot-twist-six.vercel.app
 - Public repository: https://github.com/ILYUTKICK/plot-twist
 - Demo video: https://ilyutkick.github.io/plot-twist/
 - Solana transaction: https://explorer.solana.com/tx/2XY2q4xJk9adgBEPXxR8bPXuvGmnNkipd4a7bSejrQXFxB1qq7KqUrMVjwJNat9V9zson4MHBeCVB6EQfjcDAZcM?cluster=devnet

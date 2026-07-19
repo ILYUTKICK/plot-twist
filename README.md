@@ -207,7 +207,7 @@ must report `ready` before recording the demo.
 
 ## Submission links
 
-- Live app: to be added after deployment
+- Live app: https://plot-twist-six.vercel.app
 - Public repository: https://github.com/ILYUTKICK/plot-twist
 - Demo video: https://ilyutkick.github.io/plot-twist/
 - [60-second recording script](docs/DEMO_SCRIPT.md)
